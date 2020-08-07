@@ -1,0 +1,33 @@
+img_100_33-checkpoint.png not imported
+img_1_1-checkpoint.png not imported
+Compose(
+    Resize(size=(512, 512), interpolation=PIL.Image.BILINEAR)
+    ToTensor()
+    Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    Lambda()
+)
+None
+Traceback (most recent call last):
+  File "train_1hot.py", line 35, in <module>
+    Variable(in_img).cuda(GPU_ID[0]), Variable(torch.tensor(0)).cuda(GPU_ID[0]), infer=False)
+  File "/opt/conda/lib/python3.7/site-packages/torch/nn/modules/module.py", line 493, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/project/at091-project-group18/dance_now/utils/model_fun.py", line 526, in forward
+    loss_G_VGG = self.criterionVGG(fake_image, real_image) * self.lambda_feat
+  File "/opt/conda/lib/python3.7/site-packages/torch/nn/modules/module.py", line 493, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/project/at091-project-group18/dance_now/utils/model_fun.py", line 210, in forward
+    x_vgg, y_vgg = self.vgg(x), self.vgg(y)
+  File "/opt/conda/lib/python3.7/site-packages/torch/nn/modules/module.py", line 493, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/project/at091-project-group18/dance_now/utils/model_fun.py", line 195, in forward
+    h_relu2 = self.slice2(h_relu1)        
+  File "/opt/conda/lib/python3.7/site-packages/torch/nn/modules/module.py", line 493, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/opt/conda/lib/python3.7/site-packages/torch/nn/modules/container.py", line 92, in forward
+    input = module(input)
+  File "/opt/conda/lib/python3.7/site-packages/torch/nn/modules/module.py", line 493, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/opt/conda/lib/python3.7/site-packages/torch/nn/modules/conv.py", line 338, in forward
+    self.padding, self.dilation, self.groups)
+RuntimeError: CUDA out of memory. Tried to allocate 512.00 MiB (GPU 0; 10.92 GiB total capacity; 9.01 GiB already allocated; 273.50 MiB free; 99.90 MiB cached)
