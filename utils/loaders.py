@@ -84,9 +84,11 @@ KERNEL_FACEEDGE=np.array([[0, 0, 1, 1 ,1, 0, 0],
                          [1, 1, 1, 1, 1, 1, 1],
                          [0, 1, 1, 1, 1, 1, 0],
                          [0, 0, 1, 1 ,1, 0, 0]], dtype=np.uint8)
+############--------------------------Make or Get Functions---------------------------################
 def is_image_file(filename):
     return any(filename.endswith(extension) for extension in IMG_EXTENSIONS)
-
+def cv2_loader(path):
+    return cv2.cvtColor(imread(path), cv2.COLOR_BGR2RGB)
 
 def make_dataset(dir_img, dir_lbl,dir_tgt=None):
     images = []
@@ -110,12 +112,16 @@ def make_dataset(dir_img, dir_lbl,dir_tgt=None):
             for fname in sorted(fnames):
                 if is_image_file(fname) and not "checkpoint" in fname:
                     path = os.path.join(root, fname)
-                    label.append(path)
+
                     if dir_img is not None:
                         path2=os.path.join(rooti,f"{fname[:-15]}{img_suffix}")
-                        images.append(path2)
-                        
-                    prefix.append(fname[:-15])
+                        if os.path.exists(path2):
+                            images.append(path2)
+                            label.append(path)
+                            prefix.append(fname[:-15])
+                    else:
+                        label.append(path)
+                        prefix.append(fname[:-15])
                     if dir_tgt:
                         path3=os.path.join(roott,f"{fname[:-15]}{img_suffix}")
                         target.append(path3)
@@ -124,13 +130,7 @@ def make_dataset(dir_img, dir_lbl,dir_tgt=None):
 
     return images,label,prefix,target
 
-
-def cv2_loader(path):
-    return cv2.cvtColor(imread(path), cv2.COLOR_BGR2RGB)
-
 def read_label(fname,ifhead,ifbody):
-
-    
     with open(fname) as f:
         data = json.load(f)
     Mtx=np.zeros((BODY_DIM,BODY_SIZE,BODY_SIZE),dtype=np.float32)
@@ -221,7 +221,7 @@ def read_label(fname,ifhead,ifbody):
             Mtx[BODY_DIM-1,...]=1-Mtx[BODY_DIM-1,...]
     return Mtx,head_mtx,head_cent
 
-
+############--------------------------Loader Class---------------------------################
 
 class CostumImFolder(Dataset):
     def __init__(self,
@@ -275,13 +275,13 @@ class CostumImFolder(Dataset):
         
         if self.img_root is not None and len(self.samples_img) == 0:
             msg = "Found 0 files in subfolders of: {}\n".format(self.img_root)
-            if extensions is not None:
-                msg += "Supported extensions are: {}".format(",".join(extensions))
+            if IMG_EXTENSIONS is not None:
+                msg += "Supported extensions are: {}".format(",".join(IMG_EXTENSIONS))
             raise RuntimeError(msg)
         if len(self.label) == 0:
             msg = "Found 0 files in subfolders of: {}\n".format(self.label_root)
-            if extensions is not None:
-                msg += "Supported extensions are: {}".format(",".join(extensions))
+            if IMG_EXTENSIONS is not None:
+                msg += "Supported extensions are: {}".format(",".join(IMG_EXTENSIONS))
             raise RuntimeError(msg)
         
         

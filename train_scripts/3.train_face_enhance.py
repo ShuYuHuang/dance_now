@@ -19,7 +19,7 @@ train_set=loaders.CostumImFolder(["../rslt/anime/fake_headimg/"],
                                  ["../data/anime/train_label/"],
                                  ["../data/anime/train_headimg/"],ifbody=False,ifhead=True)
 
-train_loader=DataLoader(train_set, batch_size=8, shuffle=True,num_workers = 4*NUM_GPU,pin_memory=True)
+train_loader=DataLoader(train_set, batch_size=10, shuffle=True,num_workers = 4*NUM_GPU,pin_memory=True)
 
 print(NUM_GPU)
 print(train_set.transform)
@@ -30,8 +30,10 @@ HEAD_GAN_DIM=14+1
 big_model=model_face.Pix2PixHDModel(HEAD_GAN_DIM,3).cuda()
 #-------------------------------------Model Training---------------------------------
 os.makedirs(f"{OUT_DIR}/", exist_ok = True)
-torch.save(big_model.facenetG.module,f"{OUT_DIR}/netG_struct.pth")
-torch.save(big_model.facenetD.module,f"{OUT_DIR}/netD_struct.pth")
+torch.save(big_model.facenetG.module,f"{OUT_DIR}/netGface_struct.pth")
+torch.save(big_model.facenetD.module,f"{OUT_DIR}/netDface_struct.pth")
+
+
 for epoch in  range(EPOCHS) :
     for in_img,_,head_mtx,_,tgt_img  in train_loader:
         ############### Forward ####################

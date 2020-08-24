@@ -14,7 +14,7 @@ NUM_GPU=torch.cuda.device_count()
 EPOCHS=500
 NITER=20
 
-IMG_ROOT="../data/soldier"
+IMG_ROOT="../data/girl"
 OUT_DIR="../model_body"
 os.makedirs(OUT_DIR, exist_ok = True)
 #-------------------------------------Loader Building---------------------------------
@@ -30,12 +30,12 @@ HEAD_GAN_DIM=14+1
 #-------------------------------------Model Building---------------------------------
 big_model=model_body.Pix2PixHDModel(GAN_DIM,3).cuda()
 #-------------------------------------Model Training---------------------------------
-big_model.load_state_dict(torch.load("../model_body/GANbody_S_run10.pt"))
+# big_model.load_state_dict(torch.load("../model_body/GANbody_S_run10.pt"))
 torch.save(big_model.netG.module,f"{OUT_DIR}/netGbody_struct.pth")
 torch.save(big_model.netD.module,f"{OUT_DIR}/netDbody_struct.pth")
 
 
-for epoch in  range(10,EPOCHS) :
+for epoch in  range(EPOCHS) :
     for in_img,lbl_sample,_,_,_ in train_loader:
         ############### Forward ####################
         losses, out_img = big_model(torch.tensor(lbl_sample,dtype=torch.float32, device=torch.device('cuda:0'))
@@ -77,8 +77,8 @@ for epoch in  range(10,EPOCHS) :
     #plt.imshow(y[0,...].detach().cpu().numpy().transpose(1,2,0))
     #plt.show()
     if epoch%10==9:
-        torch.save(big_model.state_dict(), f"{OUT_DIR}/GANbody_S_run{epoch+1}.pt")
-        torch.save(big_model.netG.module.state_dict(), f"{OUT_DIR}/netGbody_S_run{epoch+1}.pt")
-        torch.save(big_model.netD.module.state_dict(), f"{OUT_DIR}/netDbody_S_run{epoch+1}.pt")
+        torch.save(big_model.state_dict(), f"{OUT_DIR}/GANbody_G_run{epoch+1}.pt")
+        torch.save(big_model.netG.module.state_dict(), f"{OUT_DIR}/netGbody_G_run{epoch+1}.pt")
+        torch.save(big_model.netD.module.state_dict(), f"{OUT_DIR}/netDbody_G_run{epoch+1}.pt")
     elif epoch<10:
-        torch.save(big_model.state_dict(), f"{OUT_DIR}/GANbody_S_run{epoch+1}.pt")
+        torch.save(big_model.state_dict(), f"{OUT_DIR}/GANbody_G_run{epoch+1}.pt")

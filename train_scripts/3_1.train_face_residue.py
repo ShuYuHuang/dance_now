@@ -29,10 +29,11 @@ HEAD_GAN_DIM=14+1
 #-------------------------------------Model Building---------------------------------
 big_model=model_face_res.Pix2PixHDModel(HEAD_GAN_DIM,3).cuda()
 #-------------------------------------Model Training---------------------------------
+os.makedirs(f"{OUT_DIR}/", exist_ok = True)
 torch.save(big_model.facenetG.module,f"{OUT_DIR}/netGface_struct.pth")
 torch.save(big_model.facenetD.module,f"{OUT_DIR}/netDface_struct.pth")
 
-os.makedirs(f"{OUT_DIR}/", exist_ok = True)
+
 for epoch in  range(EPOCHS) :
     for in_img,_,head_mtx,_,tgt_img  in train_loader:
         ############### Forward ####################
