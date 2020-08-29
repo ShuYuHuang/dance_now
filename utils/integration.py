@@ -1,9 +1,8 @@
 import cv2
-import tensorflow as tf
 import torch, sys, cv2, os
 sys.path.insert(1, 'pytorch_deep_image_matting/core')
 import numpy as np
-import time
+from torchvision import transforms as ts
 
 
 ######################################################################
@@ -32,39 +31,28 @@ SMOOTH_KER_SIZE=31
 ######################################################################
 
 
+def __scale_width(img, target_width):
+    shape_dst = np.min(img.shape[:2])
+    oh = (img.shape[0] - shape_dst) // 2
+    ow = (img.shape[1] - shape_dst) // 2
 
-###### --------------------Create trimap------------------------------######
-
-def gen_trimap(in_mask, size, erosion=False):
-    pixels = 2*size + 1;                                     ## Double and plus 1 to have an odd-sized kernel
-
-    if erosion is not False:
-        erosion = int(erosion)                 ## Design an odd-sized erosion kernel
-        msk = cv2.erode(in_mask, EROTION_KERNEL, iterations=erosion)  ## How many erosion do you expec
-        #image = np.where(image > 0, 255, image)                       ## Any gray-clored pixel becomes white (smoothing)
-        # Error-handler to prevent entire foreground annihilation
-        if cv2.countNonZero(msk) == 0:
-            print("ERROR: foreground has been entirely eroded");
-            sys.exit();
-    dilation  = cv2.dilate(msk, TRIM_KERNEL, iterations = 1)
-
-    dilation  = np.where(dilation == 1., 0.5, dilation) 	## WHITE to GRAY
-    remake    = np.where(dilation != 0.5, 0., dilation)		## Smoothing
-    remake    = np.where(msk > 0.5, 0.7, dilation)		## mark the tumor inside GRAY
-    remake    = np.where(remake < 0.5, 0., remake)		## Embelishment
-    remake    = np.where(remake > 0.7, 0., remake)		## Embelishment
-    remake    = np.where(remake == 0.7, 1., remake)		## GRAY to WHITE
-
-    #############################################
-    # Ensures only three pixel values available #
-    # TODO: Optimization with Cython            #
-    #############################################    
-    remake[np.logical_and(remake != 0. ,remake != 1.)]=0.5
-    print("generate trimap(size: " + str(size) + ", erosion: " + str(erosion) + ")")
-    return remake
-
+    img = img[oh:oh + shape_dst, ow:ow + shape_dst]
+    return cv2.resize(img, (target_width, target_width))
  
+ph_transform = ts.Compose([
+         ts.Lambda(lambda im: __scale_width(im,256)),
+         ts.ToTensor(),
+         torch.FloatTensor,
+         ts.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5))
+         ])
 
+phout_transform = ts.Compose([
+         ts.Lambda(lambda tr: (tr>0.9).squeeze().detach().cpu().numpy()),
+         ts.Lambda(lambda im: cv2.resize(im, (512,512)))
+         ])
+infout_transform = ts.Compose([
+         ts.Lambda(lambda tr: (tr>0.9).squeeze().detach().cpu().numpy()),
+         ])
 ######################################################################
 # Img Post-Process functions
 ######################################################################

@@ -7,7 +7,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
 import numpy as np
-from utils import loaders,model_face_res
+from utils import loaders,model_face
 
 NUM_GPU=torch.cuda.device_count()
 EPOCHS=500
@@ -30,7 +30,7 @@ GAN_DIM=24+5+5+1
 HEAD_GAN_DIM=14+1
 
 #-------------------------------------Model Building---------------------------------
-big_model=model_face_res.Pix2PixHDModel(HEAD_GAN_DIM,3).cuda()
+big_model=model_face.Pix2PixHDModel(HEAD_GAN_DIM,3).cuda()
 #-------------------------------------Model Training---------------------------------
 os.makedirs(f"{OUT_DIR}/", exist_ok = True)
 #torch.save(big_model.facenetG.module,f"{OUT_DIR}/netGface_struct.pth")

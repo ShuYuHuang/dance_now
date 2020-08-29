@@ -9,6 +9,7 @@ from torchvision import transforms as ts
 from torch.utils.data import Dataset
 
 from . loaders import cv2_loader,make_dataset,__scale_width
+import cv2 
 
 IMG_EXTENSIONS = [
     '.jpg', '.JPG', '.jpeg', '.JPEG',
@@ -42,7 +43,8 @@ def save_head(fname,im_fname,im_sample,target_root):
                               head_cent[0]-HALF_HEAD:\
                               head_cent[0]+HALF_HEAD,:]
             print(head_img.shape,head_img.min(),head_img.max(),im_sample.dtype)
-            imsave(f"{target_root}/{im_fname}.png",head_img)
+            
+            cv2.imsave(f"{target_root}/{im_fname}.png",cv2.cvtColor(head_img, cv2.COLOR_RGB2BGR))
             isvalid=True
         else :
             print("fku")

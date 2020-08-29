@@ -10,6 +10,7 @@ from torch.autograd import Variable
 from imageio import imread,imsave
 
 import numpy as np
+import cv2
 import functools
 
 NUM_GPU=torch.cuda.device_count()
@@ -35,7 +36,7 @@ def norm_0to1(inp):
     return (inp-inp.min())/(inp.max()-inp.min())
 #-------------------------------------Model Building---------------------------------
 norm_layer0 = functools.partial(nn.InstanceNorm2d, affine=False)
-G_body=torch.load("../model/netGbody_struct.pth").cuda()
+G_body=torch.load("../model_body/netGbody_struct.pth").cuda()
 G_body.load_state_dict(torch.load("../model_body/netGbody_S_run360.pt"))
 G_body = nn.DataParallel(G_body)
 
@@ -48,7 +49,7 @@ with torch.no_grad():
         for ii,img_t in enumerate(out_img):
             body_img = norm_0to1(img_t.cpu().numpy().transpose(1,2,0))*255
             
-            imsave(os.path.join(FAKE_BODY_DIR,f"{imname[ii]}.png"),body_img)
+            cv2.imwrite(os.path.join(FAKE_BODY_DIR,f"{imname[ii]}.png"),cv2.cvtColor(body_img, cv2.COLOR_RGB2BGR))
             if (head_center[ii,1]-HALF_HEAD>=0 and\
                head_center[ii,1]+HALF_HEAD<BODY_SIZE and\
                head_center[ii,0]-HALF_HEAD>=0 and\
@@ -57,7 +58,7 @@ with torch.no_grad():
                                   head_center[ii,1]+HALF_HEAD,\
                                   head_center[ii,0]-HALF_HEAD:\
                                   head_center[ii,0]+HALF_HEAD,:]
-            imsave(os.path.join(FAKE_HEAD_DIR,f"{imname[ii]}.png"),head_img)
+            cv2.imwrite(os.path.join(FAKE_HEAD_DIR,f"{imname[ii]}.png"),cv2.cvtColor(head_img, cv2.COLOR_RGB2BGR))
             
           
         

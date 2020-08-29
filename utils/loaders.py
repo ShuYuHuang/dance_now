@@ -88,7 +88,14 @@ KERNEL_FACEEDGE=np.array([[0, 0, 1, 1 ,1, 0, 0],
 def is_image_file(filename):
     return any(filename.endswith(extension) for extension in IMG_EXTENSIONS)
 def cv2_loader(path):
-    return cv2.cvtColor(imread(path), cv2.COLOR_BGR2RGB)
+    if not os.path.exists(path):
+        print(path,"not exist")
+    imgg=imread(path)
+    if not imgg.any():
+        print(path,"not good")
+        os.system(f"rm -f {path}")
+        
+    return cv2.cvtColor(imgg, cv2.COLOR_BGR2RGB)
 
 def make_dataset(dir_img, dir_lbl,dir_tgt=None):
     images = []
@@ -112,19 +119,30 @@ def make_dataset(dir_img, dir_lbl,dir_tgt=None):
             for fname in sorted(fnames):
                 if is_image_file(fname) and not "checkpoint" in fname:
                     path = os.path.join(root, fname)
-
-                    if dir_img is not None:
+                    
+                    if dir_tgt:
                         path2=os.path.join(rooti,f"{fname[:-15]}{img_suffix}")
-                        if os.path.exists(path2):
+                        path3=os.path.join(roott,f"{fname[:-15]}{img_suffix}")
+                        if not os.path.exists(path2) or not os.path.exists(path3):
+                            os.system(f"rm -f {path}")
+                            os.system(f"rm -f {path2}")
+                            os.system(f"rm -f {path3}")
+                        else:
+                            label.append(path)
                             images.append(path2)
+                            target.append(path3)
+                            prefix.append(fname[:-15])
+                            
+                    else:
+                        if dir_img is not None:
+                            path2=os.path.join(rooti,f"{fname[:-15]}{img_suffix}")
+                            if os.path.exists(path2):
+                                images.append(path2)
+                                label.append(path)
+                                prefix.append(fname[:-15])
+                        else:
                             label.append(path)
                             prefix.append(fname[:-15])
-                    else:
-                        label.append(path)
-                        prefix.append(fname[:-15])
-                    if dir_tgt:
-                        path3=os.path.join(roott,f"{fname[:-15]}{img_suffix}")
-                        target.append(path3)
                 else:
                     print(f"{fname} not imported")
 
@@ -157,20 +175,6 @@ def read_label(fname,ifhead,ifbody):
                        face[3*ii]-head_cent[0]+HEAD_SIZE//2<HEAD_SIZE:
                         head_mtx[ii%14,face[3*ii+1]-head_cent[1]+HEAD_SIZE//2\
                                       ,face[3*ii]-head_cent[0]+HEAD_SIZE//2]=1
-            #-------------Bluring
-            for ii in range(HEAD_DIM-1):
-                head_mtx[ii,...]=cv2.GaussianBlur(head_mtx[ii,...],(3,3),0)
-                
-            #-------------Gen Background
-            head_mtx[HEAD_DIM-1,...]=np.any(head_mtx[:HEAD_DIM-1,...],0)
-            head_mtx[HEAD_DIM-1,...]=1-head_mtx[HEAD_DIM-1,...]
-            
-            for _ in range(3):
-                head_mtx[HEAD_DIM-1,...]=cv2.erode(head_mtx[HEAD_DIM-1,...],KERNEL_FACEEDGE)
-            for _ in range(2):
-                head_mtx[HEAD_DIM-1,...]=cv2.dilate(head_mtx[HEAD_DIM-1,...],KERNEL_FACEEDGE)
-            #-------------Blur Background
-            head_mtx[HEAD_DIM-1,...]=cv2.GaussianBlur(head_mtx[HEAD_DIM-1,...],(5,5),0)
         if ifbody:
             #Handling pose and hand gesture
             pose=np.array(data["people"][jj]["pose_keypoints_2d"])# *25 points
@@ -213,14 +217,120 @@ def read_label(fname,ifhead,ifbody):
                     for kk,xx in enumerate(xline):
                         Mtx[BODY_DIM-HAND_DIM-1+ii%5,xx,yline[kk]]=1
                     ii+=1
-            for ii in range(BODY_DIM-HAND_DIM*2-1):
-                Mtx[ii,...]=cv2.dilate(Mtx[ii,...],KERNEL)
-            for ii in range(BODY_DIM-HAND_DIM*2,BODY_DIM-1):
-                Mtx[ii,...]=cv2.dilate(Mtx[ii,...],KERNEL_HAND)
-            Mtx[BODY_DIM-1,...]=np.any(Mtx[:BODY_DIM-1,...],0)
-            Mtx[BODY_DIM-1,...]=1-Mtx[BODY_DIM-1,...]
+            
+    if ifhead:
+         #-------------Bluring
+        for ii in range(HEAD_DIM-1):
+            head_mtx[ii,...]=cv2.GaussianBlur(head_mtx[ii,...],(3,3),0)
+        head_mtx[HEAD_DIM-1,...]=np.any(head_mtx[:HEAD_DIM-1,...],0)
+        head_mtx[HEAD_DIM-1,...]=1-head_mtx[HEAD_DIM-1,...]
+            
+        for _ in range(3):
+            head_mtx[HEAD_DIM-1,...]=cv2.erode(head_mtx[HEAD_DIM-1,...],KERNEL_FACEEDGE)
+        for _ in range(2):
+            head_mtx[HEAD_DIM-1,...]=cv2.dilate(head_mtx[HEAD_DIM-1,...],KERNEL_FACEEDGE)
+        #-------------Blur Background
+        head_mtx[HEAD_DIM-1,...]=cv2.GaussianBlur(head_mtx[HEAD_DIM-1,...],(5,5),0)
+    if ifbody:    
+        for ii in range(BODY_DIM-HAND_DIM*2-1):
+            Mtx[ii,...]=cv2.dilate(Mtx[ii,...],KERNEL)
+        for ii in range(BODY_DIM-HAND_DIM*2,BODY_DIM-1):
+            Mtx[ii,...]=cv2.dilate(Mtx[ii,...],KERNEL_HAND)
+        
+        Mtx[BODY_DIM-1,...]=np.any(Mtx[:BODY_DIM-1,...],0)
+        Mtx[BODY_DIM-1,...]=1-Mtx[BODY_DIM-1,...]
+        
     return Mtx,head_mtx,head_cent
 
+def label2feature(datum,ifhead,ifbody):
+    
+    Mtx=np.zeros((BODY_DIM,BODY_SIZE,BODY_SIZE),dtype=np.float32)
+    head_mtx=np.zeros((HEAD_DIM,HEAD_SIZE,HEAD_SIZE),dtype=np.float32)
+    head_cent=np.array([0,0])  
+    head_inside=False
+    for jj in range(datum.poseKeypoints.shape[0]):
+        face=datum.faceKeypoints[jj]# *70 points
+        face[face>511]=511
+        face=face.astype('int32')
+        head_cent=np.array([face[30,0],face[30,1]],dtype=np.int)
+        if ifhead:
+            # ----Handeling Head Keypoints and Face extraction 
+
+            if face is not None:
+                n_face=face.__len__()
+                for ii in range(0,n_face):
+                    if face[ii,1]-head_cent[1]+HEAD_SIZE//2>=0 and\
+                       face[ii,1]-head_cent[1]+HEAD_SIZE//2<HEAD_SIZE and\
+                       face[ii,0]-head_cent[0]+HEAD_SIZE//2>=0 and\
+                       face[ii,0]-head_cent[0]+HEAD_SIZE//2<HEAD_SIZE:
+                        head_mtx[ii%14,face[ii,1]-head_cent[1]+HEAD_SIZE//2\
+                                      ,face[ii,0]-head_cent[0]+HEAD_SIZE//2]=1
+        if ifbody:
+            #Handling pose and hand gesture
+            pose=datum.poseKeypoints[jj]# *25 points
+            hand_l=datum.handKeypoints[0][jj]# *21 points
+            hand_r=datum.handKeypoints[1][jj]
+            pose[pose>511]=511
+            hand_l[hand_l>511]=511
+            hand_r[hand_r>511]=511
+            if pose is not None:
+                #n_pose=pose.__len__()//3
+                pose=pose.astype('int32')
+                ii=0
+                for p1,p2 in bodylink_list:
+                    #dist=int(abs(complex(pose[p1,1]-pose[p2,1],pose[p1,0]-pose[p2,0])))+1
+                    dist=int(max(abs(pose[p1,1]-pose[p2,1]),abs(pose[p1,0]-pose[p2,0])))+1
+                    xline=np.linspace(pose[p1,1],pose[p2,1],dist).astype(int)
+                    yline=np.linspace(pose[p1,0],pose[p2,0],dist).astype(int)
+                    Mtx[ii,xline,yline]=1
+                    ii=ii+1
+            if hand_l is not None:
+                hand_l=hand_l.astype('int32')
+                ii=0
+                for p1,p2 in handlink_list:
+                    dist=int(abs(complex(hand_l[p1,1]-hand_l[p2,1],hand_l[p1,0]-hand_l[p2,0])))+1
+                    #dist=int(max(abs(hand_l[p1,1]-hand_l[p2,1]),abs(hand_l[p1,0]-hand_l[p2,0])))+1
+                    xline=np.linspace(hand_l[p1,1],hand_l[p2,1],dist).astype(int)
+                    yline=np.linspace(hand_l[p1,0],hand_l[p2,0],dist).astype(int)
+                    Mtx[BODY_DIM-HAND_DIM*2-1+ii%5,xline,yline]=1
+                    ii+=1
+
+            if hand_r is not None:
+                hand_r=hand_r.astype('int32')
+                ii=0
+                for p1,p2 in handlink_list:
+                    dist=int(abs(complex(hand_r[p1,1]-hand_r[p2,1],hand_r[p1,0]-hand_r[p2,0])))+1
+                    #dist=int(max(abs(hand_r[p1,1]-hand_r[p2,1]),abs(hand_r[p1,0]-hand_r[p2,0])))+1
+                    xline=np.linspace(hand_r[p1,1],hand_r[p2,1],dist).astype(int)
+                    yline=np.linspace(hand_r[p1,0],hand_r[p2,0],dist).astype(int)
+                    for kk,xx in enumerate(xline):
+                        Mtx[BODY_DIM-HAND_DIM-1+ii%5,xx,yline[kk]]=1
+                    ii+=1
+        #-------------Gen Background
+    if ifhead:
+         #-------------Bluring
+        for ii in range(HEAD_DIM-1):
+            head_mtx[ii,...]=cv2.GaussianBlur(head_mtx[ii,...],(3,3),0)
+        head_mtx[HEAD_DIM-1,...]=np.any(head_mtx[:HEAD_DIM-1,...],0)
+        head_mtx[HEAD_DIM-1,...]=1-head_mtx[HEAD_DIM-1,...]
+            
+        for _ in range(3):
+            head_mtx[HEAD_DIM-1,...]=cv2.erode(head_mtx[HEAD_DIM-1,...],KERNEL_FACEEDGE)
+        for _ in range(2):
+            head_mtx[HEAD_DIM-1,...]=cv2.dilate(head_mtx[HEAD_DIM-1,...],KERNEL_FACEEDGE)
+        #-------------Blur Background
+        head_mtx[HEAD_DIM-1,...]=cv2.GaussianBlur(head_mtx[HEAD_DIM-1,...],(5,5),0)
+    if ifbody:    
+        for ii in range(BODY_DIM-HAND_DIM*2-1):
+            Mtx[ii,...]=cv2.dilate(Mtx[ii,...],KERNEL)
+        
+        for ii in range(BODY_DIM-HAND_DIM*2,BODY_DIM-1):
+            Mtx[ii,...]=cv2.dilate(Mtx[ii,...],KERNEL_HAND)
+        
+        Mtx[BODY_DIM-1,...]=np.any(Mtx[:BODY_DIM-1,...],0)
+        Mtx[BODY_DIM-1,...]=1-Mtx[BODY_DIM-1,...]
+        
+    return Mtx,head_mtx,head_cent
 ############--------------------------Loader Class---------------------------################
 
 class CostumImFolder(Dataset):
