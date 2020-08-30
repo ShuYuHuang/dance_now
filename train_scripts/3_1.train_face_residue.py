@@ -15,6 +15,7 @@ NITER=20
 OUT_DIR="../model_face"
 #-------------------------------------Loader Building---------------------------------
 
+<<<<<<< HEAD
 train_set=loaders.CostumImFolder(["../rslt/soldier/fake_headimg/"],
                                  ["../data/soldier/train_label/"],
                                  ["../data/soldier/train_headimg/"],ifbody=False,ifhead=True)
@@ -23,6 +24,13 @@ train_loader=DataLoader(train_set, batch_size=10, shuffle=True,num_workers = 4*N
 len(train_set.label)
 len(train_set.samples_img)
 len(train_set.target_img)
+=======
+train_set=loaders.CostumImFolder(["../rslt/anime/fake_headimg/"],
+                                 ["../data/anime/train_label/"],
+                                 ["../data/anime/train_headimg/"],ifbody=False,ifhead=True)
+
+train_loader=DataLoader(train_set, batch_size=10, shuffle=True,num_workers = 4*NUM_GPU,pin_memory=True)
+>>>>>>> 72dfc472d73fe993ea067735b47f10c67b2b0a65
 
 print(NUM_GPU)
 print(train_set.transform)
@@ -32,11 +40,18 @@ HEAD_GAN_DIM=14+1
 #-------------------------------------Model Building---------------------------------
 big_model=model_face_res.Pix2PixHDModel(HEAD_GAN_DIM,3).cuda()
 #-------------------------------------Model Training---------------------------------
+<<<<<<< HEAD
 os.makedirs(f"{OUT_DIR}/", exist_ok = True)
 #torch.save(big_model.facenetG.module,f"{OUT_DIR}/netGface_struct.pth")
 #torch.save(big_model.facenetD.module,f"{OUT_DIR}/netDface_struct.pth")
 
 
+=======
+torch.save(big_model.facenetG.module,f"{OUT_DIR}/netGface_struct.pth")
+torch.save(big_model.facenetD.module,f"{OUT_DIR}/netDface_struct.pth")
+
+os.makedirs(f"{OUT_DIR}/", exist_ok = True)
+>>>>>>> 72dfc472d73fe993ea067735b47f10c67b2b0a65
 for epoch in  range(EPOCHS) :
     for in_img,_,head_mtx,_,tgt_img  in train_loader:
         ############### Forward ####################
@@ -59,6 +74,7 @@ for epoch in  range(EPOCHS) :
     print(f"epoch {epoch}/{EPOCHS} over, loss_G,loss_D= {loss_G},{loss_D}")
 
     if epoch%10==9:
+<<<<<<< HEAD
         torch.save(big_model.state_dict(), f"{OUT_DIR}/GAN_S_run{epoch+1}.pt")
         torch.save(big_model.facenetG.module.state_dict(), f"{OUT_DIR}/netGface_S_run{epoch+1}.pt")
         torch.save(big_model.facenetD.module.state_dict(), f"{OUT_DIR}/netDface_S_run{epoch+1}.pt")
@@ -67,3 +83,13 @@ for epoch in  range(EPOCHS) :
             torch.save(big_model.facenetG.module.state_dict(), f"{OUT_DIR}/netGface_S_run{epoch+1}.pt")
             torch.save(big_model.facenetD.module.state_dict(), f"{OUT_DIR}/netDface_S_run{epoch+1}.pt")
         torch.save(big_model.state_dict(), f"{OUT_DIR}/GAN_S_run{epoch+1}.pt")
+=======
+        torch.save(big_model.state_dict(), f"{OUT_DIR}/GAN_run{epoch+1}.pt")
+        torch.save(big_model.facenetG.module.state_dict(), f"{OUT_DIR}/netGface_run{epoch+1}.pt")
+        torch.save(big_model.facenetD.module.state_dict(), f"{OUT_DIR}/netDface_run{epoch+1}.pt")
+    elif epoch<10:
+        if epoch==4:
+            torch.save(big_model.facenetG.module.state_dict(), f"{OUT_DIR}/netGface_run{epoch+1}.pt")
+            torch.save(big_model.facenetD.module.state_dict(), f"{OUT_DIR}/netDface_run{epoch+1}.pt")
+        torch.save(big_model.state_dict(), f"{OUT_DIR}/GAN_run{epoch+1}.pt")
+>>>>>>> 72dfc472d73fe993ea067735b47f10c67b2b0a65
