@@ -21,10 +21,10 @@ Specific keypoint assignment can be found at [openpose doc file](https://github.
 #### Training:
 
 Enter directory: "dance_now/train_scripts/" and follow the order of the notebooks:
-0.make_real_head.py: Crop 64x64 head image from given anime image according to skeleton
-1.train_bodystick.py: train stick to body generation with multiple GPUs and save the model
-2.cut_fake_head.py: Crop 64x64 head image from generated anime image according to skeleton
-3_1.train_face_residue.py: Train the face residue enhancement process from raw generated face to the precise given anime face.
+* 0.make_real_head.py: Crop 64x64 head image from given anime image according to skeleton
+* 1.train_bodystick.py: train stick to body generation with multiple GPUs and save the model
+* 2.cut_fake_head.py: Crop 64x64 head image from generated anime image according to skeleton
+* 3_1.train_face_residue.py: Train the face residue enhancement process from raw generated face to the precise given anime face.
 
 #### Inference:
 
