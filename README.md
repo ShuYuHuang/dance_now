@@ -40,3 +40,12 @@ Thanks for the opportunity provided by [Taiwan AI Academy](https://en.aiacademy.
 
 ### Inspiration
 [Everybody Dance Now](https://github.com/topics/everybody-dance-now) is a topic in Github challenging for transferring ones' movement to another one. Inspired by this project, we proposed to automatically replace someone in the photo with the specific anime character with the same pose.
+
+### Reference
+1. Chan, C., Ginosar, S., Zhou, T., & Efros, A. A. (2019). Everybody dance now. In Proceedings of the IEEE International Conference on Computer Vision (pp. 5933-5942). 
+2. Isola, P., Zhu, J. Y., Zhou, T., & Efros, A. A. (2017). Image-to-image translation with conditional adversarial networks. In Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 1125-1134).
+3. Paszke, A., Gross, S., Massa, F., Lerer, A., Bradbury, J., Chanan, G., … Chintala, S. (2019). PyTorch: An Imperative Style, High-Performance Deep Learning Library. In H. Wallach, H. Larochelle, A. Beygelzimer, F. d extquotesingle Alch'e-Buc, E. Fox, & R. Garnett (Eds.), Advances in Neural Information Processing Systems 32 (pp. 8024–8035). Curran Associates, Inc.
+4. Cao, Z., Hidalgo, G., Simon, T., Wei, S. E., & Sheikh, Y. (2018). OpenPose: realtime multi-person 2D pose estimation using Part Affinity Fields. arXiv preprint arXiv:1812.08008.
+5. Xu, N., Price, B., Cohen, S., & Huang, T. (2017). Deep image matting. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (pp. 2970-2979).
+6. Chen, L. C., Zhu, Y., Papandreou, G., Schroff, F., & Adam, H. (2018). Encoder-decoder with atrous separable convolution for semantic image segmentation. In Proceedings of the European conference on computer vision (ECCV) (pp. 801-818).
+7. Wang, T. C., Liu, M. Y., Zhu, J. Y., Tao, A., Kautz, J., & Catanzaro, B. (2018). High-resolution image synthesis and semantic manipulation with conditional gans. In Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 8798-8807).
