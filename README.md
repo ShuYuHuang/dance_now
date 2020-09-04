@@ -5,7 +5,11 @@
 Following the  "[Everybody Dance Now](https://github.com/topics/everybody-dance-now)" topic, we tried to make anime character move as we move. We provided 3 sets of different [Mixamo](https://www.mixamo.com/) characters for this image generation task. 
 A generator-discriminator network was built for training anime image generation from key points for each character. The network was trained on each pair of the image and the corresponding keypoints o of the character's pose. Each keypoint set should be able to generate the image of the specific anime character with the same pose.
 Hope you enjoy teaching these characters to dance!
-<img src="image/GAN AniReality.png", width="480">
+
+
+<p align="center">
+  <img src="image/GAN AniReality.png", width="720">
+</p>
 
 ### Dataset
 
